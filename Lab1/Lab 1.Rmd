@@ -1,7 +1,7 @@
 ---
 title: "Lab 1 - Computational Statistics"
 author: "Gustav Sternelöv"
-date: "Monday, February 1, 2016"
+date: "Friday, February 5, 2016"
 output:
   pdf_document:
     fig_height: 3.7
@@ -55,7 +55,7 @@ AssigTwo(x=100000, epsilon=10^-15)
 
 ## 2.3
 The obtained value is *0* but the real value of the derivative is *1*. 
-The reason behind this error is connected to the different magnitudes. Here *x* is a very large value and *epsilon* is a very low value. Therefore the addition of *x+epsilon* practically becomes *x* which means that in the numerator *x-x* is the executed computation in practice. This leads to a division where the value of *x-x* is divided by *epsilon*, which of course becomes *0*. The value in the denominator is equal to the non-zero value represented by *epsilon* since it does not interfer with any magnitude problems.
+The reason behind this error is connected to the different magnitudes. Here *x* is a very large value and *epsilon* is a very low value. Therefore the addition of *x+epsilon* practically becomes *x* which means that in the numerator *x-x* is the executed computation in practice. The value in the denominator is equal to the value represented by *epsilon* since it does not interfer with any magnitude problems. This leads to a division where the value of *x-x* is divided by *epsilon*, which of course becomes *0*. 
 
 
 # Assignment 3
@@ -78,7 +78,7 @@ plot(y=y[2:10000], x=2:10000, pch=21, bg="orange", col="darkorange", ylab="myvar
      main="Difference between myvar and var")
 ```
   
-  There appear to be some differences between how the respective functions estimates the variance. Otherwise, if the functions were more similar, the differences plotted by the graph above should have been closer to zero. One possible explanation to this results is the problems that may occur when the sum of several values with the same sign and aproximately same magnitude is computed. Probably *var* has a better solution to this problem than *myvar*, hence the differences between the estimated variances.
+  There appear to be some differences between how the respective functions estimates the variance. Otherwise, if the functions were more similar, the differences plotted by the graph above should have been closer to zero. One possible explanation to this results is the problems that may occur when the sum of several values with the same sign and approximately same magnitude is computed. Probably *var* has a better solution to this problem than *myvar*, hence the differences between the estimated variances.
 
 # Assignment 4
 ## 4.1-4.3
@@ -116,15 +116,13 @@ bSc <- t(as.matrix(XvarXc)) %*% as.matrix(tecatSc$Protein)
 # kappa(ASc)
 ```
 
-When applying *solve* on the scaled matrices the *beta* coefficients for the respective x-variables are obtained. In the table below the first ten coefficients are shown. 
+When applying *solve* on the scaled matrices the *beta* coefficients for the respective x-variables are obtained. The problem that occured for the matrix *A* in *4.3* with non-scaled data does not occur for the scaled data. In the table below the first ten coefficients are shown. 
 ```{r, echo=FALSE}
 head(solve(ASc,bSc), 10)
 ```
 
 
-The condition number for the scaled data is $`r kappa(ASc)`$. The result has changed because of the scaling of data. The problem that occured for the non-scaled data in *4.3* does not occur for the scaled data. This due to the fact that...  
-
-This data set could be sensitive to scaling since there is a signficant difference between the magnitude of the values for the predictors, especially the variables *fat* and *moisture* has much higher values than the others. The new condition number is lower and an interpretation of this could be that the scaled linear system performs better than the non-scaled. However, this does not necesserily need to be true. The lower condition number could be due to the scaling and moreover does not a lower condition number guarantee that the new system is better. A lower number is preferable but it does not completely assures that its better. 
+The condition number for the scaled data is $`r kappa(ASc)`$, hence the result has changed because of the scaling of data. This data set could be sensitive to scaling since there is a signficant difference between the magnitude of the values for the predictors, especially the variables *fat* and *moisture* has much higher values than the others. The new condition number is lower and an interpretation of this could be that the scaled linear system performs better than the non-scaled. However, this does not necesserily need to be true. The lower condition number could be due to the scaling and moreover does not a lower condition number guarantee that the new system is better. A lower number is preferable but it does not completely assures that itis better. 
 For a linear system the condition provides a bound on the relative norms for the "correct" solution. Since it specifies the bound a lower value is preferable but a higher number does not have to mean that the linear system is worse. 
 
 
