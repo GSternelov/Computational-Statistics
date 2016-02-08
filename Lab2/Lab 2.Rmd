@@ -1,0 +1,90 @@
+---
+title: "Lab 2 - Computational Statistics"
+author: "Gustav Sternelöv"
+date: "8 februari 2016"
+output: pdf_document
+---
+
+# Assignment 1
+
+## 1.1-1.2
+Data is imported and splitted into a training set and a test set. 
+```{r, echo=FALSE}
+mort_rate<-read.csv2("C:\\Users\\Gustav\\Documents\\Computational-Statistics\\Lab2\\mortality_rate.csv",sep=";")
+mort_rate$LMR <- log(mort_rate$Rate)
+
+n=dim(mort_rate)[1]
+set.seed(123456)
+id=sample(1:n, floor(n*0.5))
+train=mort_rate[id,]
+test=mort_rate[-id,]
+```
+Thereafter, the function *myMSE* is written. It takes the arguments pars (a list including *X*, *Y*, *XTest* and *YTest*) and the argument *lambda*. The latter parameter specifies the penalty parameter *enp.target* in *loess*. The *myMSE* function then uses *loess* to make a model which is evaluated on the test set. Returned by *myMSE* is the predictive MSE. 
+```{r}
+myMSE <- function(lambda, pars){
+  model <- loess(pars$Y~pars$X, data=pars[1:2], enp.target = lambda)
+  Pred <- predict(model, newdata=pars$Xtest)
+  MSE <- (1/length(pars$Y)) * sum((Pred-pars$Ytest)^2)
+  print(MSE)
+  return(MSE)
+}
+```
+
+## 1.3
+```{r, echo=FALSE, results='hide'}
+Data <- list(X=train$Day, Y=train$LMR, Xtest=test$Day, Ytest=test$LMR)
+# 1.3 
+Lambda <-  seq(0.1,40, by=0.1)
+modelMSE <- 0
+j <- 0
+for(i in Lambda){
+  j <- j+1
+  modelMSE[j] <- myMSE(Lambda[j], Data)
+}
+```
+
+```{r, echo=FALSE, fig.height=3.7}
+library(ggplot2)
+MSEdata <- data.frame(MSE=modelMSE, lambda=Lambda)  
+ggplot(MSEdata, aes(x=lambda, y=MSE, label=lambda)) + geom_line(col="darkblue")+
+  geom_text(data=subset(MSEdata, MSE <= min(MSEdata$MSE))[1,],vjust=-0.6, size=10) + 
+  geom_point(data=subset(MSEdata, MSE <= min(MSEdata$MSE))[1,], size=5, col="darkorange")
+```
+
+## 1.4
+
+```{r, echo=FALSE}
+Optim <- optimize(f=myMSE, interval = c(0.1, 40), tol=0.01, pars=Data)
+Optim
+```
+
+
+## 1.5
+
+```{r, echo=FALSE}
+optim(par=35, fn=myMSE, method = "BFGS", pars=Data)
+```
+
+
+# Assignment 2
+
+## 2.1-2.2
+
+```{r, echo=FALSE}
+# 2.1
+load("C:\\Users\\Gustav\\Documents\\Computational-Statistics\\Lab2\\data.RData")
+Data2 <- data
+# Maximum likelihood estimates
+# my
+MeanEst <- sum(Data2) / length(Data2)
+
+# sigma2 
+(1/length(Data2)) * sum((Data2-MeanEst)^2)
+
+```
+
+
+## 2.3
+
+
+## 2.4
