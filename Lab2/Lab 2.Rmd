@@ -1,7 +1,7 @@
 ---
 title: "Lab 2 - Computational Statistics"
 author: "Gustav Sternelöv"
-date: "8 februari 2016"
+date: "February, 11, 2016"
 output: pdf_document
 ---
 
@@ -93,7 +93,7 @@ First the ML estimator for $\mu$:
 $$ \frac{\partial log(L(\mu,\sigma))}{\partial \mu} = 0 + \frac{2 \sum_{i=1}^n(x_i - \mu)}{2\sigma^2} $$
 $$ \hat{\mu} = \overline{x} =  \frac{\sum_{i=1}^n x_i}{n} $$
 Then, finally, the ML estimator for $\sigma$:
-$$ \frac{\partial log(L(\mu,\sigma))}{\partial \sigma} =  -\frac{n}{2}*\frac{2}{\sigma} + 2\sigma *(-2\sigma^2)^{-2} *(-2\sum_{i=1}^n(x_i-\mu)) $$
+$$ \frac{\partial log(L(\mu,\sigma))}{\partial \sigma} =  -\frac{n}{\sigma}+\frac{1}{\sigma^3} *(\sum_{i=1}^n(x_i-\mu)^2) $$
 $$ \hat{\sigma} = \sqrt{\frac{\sum_{i=1}^n(x_i-\mu)^2}{n}} $$
 
 ```{r, echo=FALSE}
@@ -110,10 +110,8 @@ sigmaEst <- sqrt((1/length(Data2)) * sum((Data2-MeanEst)^2))
 The parameter estimates obtained for $\mu$ and $\sigma$ when the formulas above are used on the data set is `r MeanEst` for the mean and `r sigmaEst` for the standard deviation. 
 
 ## 2.3
-Often more convenient to work with the log likelihood  
-An MLE estimate is the same regardless of whether the likelihood or log likelihood is maximized.  
+To maximize the likelihood gives the same result as maximize the log-likelihood. The difference between the case where the likelihood is maximized and the case where the log-likelihood is maximized is the difficulty of making the compuatations. It is in general easier and more convenient to maximize the log likelihood instead of the likelihood. That since the former often makes the calculations easier to perform. 
 
-It is a bad idea to maximize the likelihood rather than maximizing the log likelihood because...
 
 ## 2.4-2.5
 
@@ -132,8 +130,8 @@ gradientf <- function(par,...){
   n <- length(data)
   my <- par[1]
   sigma <- par[2]
-  myML <-  - (2*sum(data-my)) / (2*sigma^2)
-  mySigma <- - (n/2)*(2/sigma)+ 2*sigma - (2*sigma^2)^-2 * (-2*sum(data-my)) 
+  myML <-  - (sum(data-my)) / (sigma^2)
+  mySigma <- -(  (-n/sigma) + (1/(sigma^3)) * sum((data-my)^2))
   return(c(myML, mySigma))
 }
 ```
@@ -159,11 +157,9 @@ optim(par = c(0,1), fn=loglikef, gr=gradientf,  method = "BFGS", data=Data2)
 ```
 
 
-In all of the cases did the algorithms converge.  
-The optimal value shifted between the different algorithms. For both the conjugate gradient and the BFGS method without specified gradient the optimal values were 1.275528 for $\mu$ and 2.005977 for $\sigma$. The conjugate gradient with specified gradient had 2.335219 and 2.557265 as optimal values and the BFGS had 1.596806 and 6.383924.  
-The amount of function and gradient evaluations required for the respective settings can be seen in the outputs above. A conjugate gradient optimizer without gradient specified required the highest amount of both function and gradient evaluations. The algorithms with specified gradient required the lowest amount of gradient evaluations and BFGS method without specified gradient requierd the lowest amount of function evaluations.  
-Should then recommend the BFGS method without gradient specified since that algorithm finds the optimal values and requires the lowest amount of function evaluations and a relatively low amount of gradient evaluations. 
-
+In all of the cases did the algorithms converge and they found the same optimal values for the parameters.   
+A conjugate gradient optimizer without gradient specified required the highest amount of both function and gradient evaluations and the conjugate gradient with gradient specified the second highest number of function and gradient evaluations. The BFGS algorithms with and without specified gradient required the same amount of gradient evaluations and the algorithm with specified gradient required two function evaluations less.  
+The recommended settings then is the BFGS with specified gradient since it requires the lowest number of evaluations.
 
 # Appendix
 ```{r code=readLines(knitr::purl('C:\\Users\\Gustav\\Documents\\Computational-Statistics\\Lab2\\Lab 2.rmd', documentation = 0)), eval = FALSE}
