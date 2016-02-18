@@ -1,0 +1,112 @@
+---
+title: "Lab 3 - Computational Statistics"
+author: "Gustav Sternelöv"
+date: "February, 18, 2016"
+output: pdf_document
+---
+
+# Assignment 1
+## 1.1-1.2
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(scales)
+require(XLConnect)
+wb = loadWorkbook("C:/Users/Gustav/Documents/Computational-Statistics/Lab3/population.xls")
+df = readWorksheet(wb, sheet = "Table", header = FALSE)
+
+data1 <- df[, 1:3]
+names(data1) <- c("cityCode", "City", "Population")
+data1 <- subset(data1, data1$cityCode > 30)
+```
+
+
+The code below shows the function written for selecting one city from the list of all cities. The probability for the respective city to be chosen is connected to the number of inhabitants in the city. Returned by the function is a number, *cityNum*, which is the row number for the selected city.   
+```{r}
+cityFunc <- function(data){
+  data$prob <- data$Population / sum(data$Population)
+  data$cumProbs <- cumsum(data$prob)
+  unifV <- runif(1,0,1)
+  dataNew <- subset(data, data$cumProbs >= unifV)
+  cityNum <- which(data$cumProbs==min(dataNew$cumProbs))
+  return(cityNum)
+}
+```
+
+
+## 1.3-1.4
+The following program is used for selecting 20 cities from the list. After each evaluation of the function is one city selected and this city is added to the new data frame *newData*. In the next step is the selected city erased from the original list of cities so it cannot be chosen two times. This procedure is repeated until the new data frame contains 20 cities.  
+```{r}
+selectData <- data1
+newData <- as.data.frame(matrix(seq(20),nrow=20,ncol=3))
+for(i in 1:20){
+  set.seed(i)
+  cityNum <- cityFunc(selectData)
+  newData[i, ] <- selectData[cityNum, 1:3]
+  selectData <- selectData[-cityNum, ]
+}
+```
+```{r,echo=FALSE}
+options(scipen = 999)
+```
+
+The names of the selected cities and the number of inhabitants in each city is presented in the table below. Among the cities that has been selected it can be noted that both Stockholm and Gothenburg, the two most populated swedish cities, are included. Of the ten cities with highest population are four included in the list. In general do the selected citites have a rather high number of inhabitants with a median population of $`r median(newData$V3)`$. The median population for all swedish cities is $`r median(data1$Population)`$, so the median population is $`r round(median(newData$V3/median(data1$Population)),1) `$ times as high for the selected cities. 
+```{r, echo=FALSE}
+Cities <- newData[, 2:3]
+names(Cities) <- c("City", "Population")
+Cities
+```
+
+
+## 1.5
+The number of inhabitants in all swedish cities and the number of inhabitants in the selected cities are compared with the following histograms.  
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+library(gridExtra)
+All <- ggplot(data1, aes(Population)) + geom_histogram(binwidth=10000, fill="darkorange", col="darkorange") + ggtitle("Population of all swedish cities") + 
+  scale_x_continuous(labels=comma) + theme(panel.grid.minor=element_blank())
+Sel <- ggplot(newData, aes(V3)) + geom_histogram(binwidth=10000, fill="darkorange", col="darkorange") +
+  scale_x_continuous(labels=comma) + theme(panel.grid.minor=element_blank()) + labs(x = "Population") + ggtitle("Population of the selected cities")
+grid.arrange(All, Sel, ncol=2)
+```
+As mentioned in *1.4* it is easily concluded that the selected cities on average are bigger than the average swedish city. This is a result of the selection procedure described in *1.1-1.2*. The probability for a city to be among the chosen cities is connected to its population since a higher number of inhabitants gives a higher probability for being selected. As a result of this selection procedure are the obtained histograms for the respective data sets rather dissimilar to each other.    
+
+# Assignment 2
+## 2.1
+For generating values from the double exponential distribution from the uniform[0,1] distribtion according to the inverse CDF method, the following steps has to be performed.  
+To start, the pdf for the double exponential distribution is
+$$ \frac{\alpha}{2} exp(-\alpha |x-\mu|) $$
+From the pdf are two integrals computed, one when $x < \mu$ and one when $x \geq \mu$. The first then is
+$$ \int_{-\infty}^x \frac{\alpha}{2} exp(\alpha (x-\mu)) $$
+$$ = \frac{1}{2}exp(\alpha(x-\mu)) $$
+And the second is
+$$ \int_x^\infty \frac{\alpha}{2} exp(-\alpha (x-\mu)) $$
+$$ = 1 - \frac{1}{2}exp(-\alpha(x-\mu))  $$
+
+Next step is to solve for x in the respective cases.
+$$ x= ln(2U) + \mu $$
+$$ x= \mu - ln(2*2U) * \frac{1}{\alpha} $$
+The last step is to add together the results.
+$$ x= ln(2U) + 2\mu - ln(2*2U) * \frac{1}{\alpha} $$
+The equation above can be used for generating values from the double exponential distribution by using values from the uniform[0,1] distribution. As an example is 10000 values generated from DE(0,1) with the inverse CDF method. The result is shown in the histogram below. 
+
+```{r,echo=FALSE, fig.height=3.5}
+## Assignment 2 ## 
+set.seed(910814)
+randoms <- runif(10000, 0, 1)
+DEval <- data.frame(V1=log(2*randoms) - log(2-2*randoms))
+ggplot(DEval, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2, binwidth=0.3) +
+  geom_freqpoly(size=1, col="darkblue", binwidth=0.3)
+```
+
+I believe this result is fairly reasonable.  
+It has relatively large tails, compared to a normal distribution, which is typical for values following a DE distribution.  
+It is centered around zero, which makes sense since the value of $\mu$ specifies the median for the distribution.  
+.  
+.  
+.
+Should it not be even more narrow around zero? A higher peak around zero.
+
+## 2.2
+
+
+
+
