@@ -28,6 +28,7 @@ for(i in 1:20){
   test <- test[-cityNum, ]
 }
 
+
 ggplot(data1, aes(Population)) + geom_histogram(binwidth=10000, fill="darkorange", col="darkorange") +
   scale_x_continuous(labels=comma) + theme(panel.grid.minor=element_blank())
 ggplot(newData, aes(V3)) + geom_histogram(binwidth=10000, fill="darkorange", col="darkorange") +
@@ -36,31 +37,30 @@ ggplot(newData, aes(V3)) + geom_histogram(binwidth=10000, fill="darkorange", col
 
 ## Assignment 2 ## 
 # 10 000 random uniform values
-set.seed(910814)
+set.seed(190216)
 randoms <- runif(10000, 0, 1)
+randIndex <- randoms < 0.5
+randoms[!randIndex]
 # The uniformed values are transformed by using the inverse CDF method.
 # The transformed values follows a DE(0,1) distribution.
-DEval <- data.frame(V1=log(2*randoms) - log(2-2*randoms))
-set.seed(910814)
+DEval1 <- data.frame(V1=log(2*randoms[randIndex]))
+DEVal2 <- data.frame(V1= -log(2-2*randoms[!randIndex]))
+DEval <- data.frame(rbind(DEval1, DEVal2))
+hist(DEval$V1, freq=FALSE, breaks=300)
+set.seed(160219)
 NormTest <- data.frame(V1=rnorm(10000, 0, 1))
 
 max(NormTest$V1 / DEval$V1)
 
-DEtest2v2 <- data.frame(V1=DEval$V1 * 0.61)
-
-library(smoothmest)
-DEsmooth <- data.frame(V1=rdoublex(10000,mu=0,lambda=1))
-
+DEtest2v2 <- data.frame(V1=DEval$V1 * 0.87)
 
 ggplot(DEval, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2,binwidth=0.3) + 
   scale_y_continuous(labels = percent_format()) +
-  geom_freqpoly(size=1, col="darkblue",binwidth=0.3) +
-  geom_histogram(data = DEtest2v2, fill = "green", alpha = 0.2,binwidth=0.3) +
-  geom_freqpoly(data = DEtest2v2,size=1, col="darkgreen",binwidth=0.3) +
+  geom_freqpoly(size=1.5, col="darkblue",binwidth=0.3) +
   geom_histogram(data = NormTest, fill = "red", alpha = 0.2,binwidth=0.3)+
-  geom_freqpoly(data = NormTest,size=1, col="darkred",binwidth=0.3) +
-  geom_freqpoly(data = DEsmooth,size=1, col="darkgreen",binwidth=0.3)  
-  
+  geom_freqpoly(data = NormTest,size=1.5, col="darkred",binwidth=0.3) +
+  geom_histogram(data = DEtest2v2, fill = "green", alpha = 0.2,binwidth=0.3) +
+  geom_freqpoly(data = DEtest2v2,size=1, col="darkgreen",binwidth=0.3)
 
 testVec <- c(0.01, 0.25, 0.5, 0.75, 0.99)
 DEtest <- log(2*testVec) - log(2-2*testVec)
@@ -159,4 +159,60 @@ ggplot(DistVal, aes(V1)) +
   geom_freqpoly(size=1, col="darkblue",binwidth=0.2)  +
   geom_freqpoly(data = NormTest2,size=1, col="darkred",binwidth=0.3)
   
+
+DEval <- data.frame(rbind(DEval1, DEVal2))
+DEfy <- 1/2 * exp(-1 * abs(DEval$V1-0))
+NMfx <- dnorm(DEval$V1, 0, 1)
+max(NMfx/DEfy)
+
+c <- 1.315489
+i <- 0
+j <- 1
+y <- data.frame(V1=0)
+set.seed(311015)
+while (length(y[,1])<2000) {
+  i <- i+1
+  #set.seed(i)
+  Utest <- runif(1,0,1)
+  if(Utest < 0.5){
+    DEy <- log(2*Utest)
+  }else{
+    DEy <- -log(2-2*Utest)
+  }
+  fy_y <- 1/2 * exp(-1 * abs(DEy-0))
+  fx_y <- dnorm(DEy, 0, 1)
+  #set.seed(i+10)
+  Uselect <- runif(1,0,1)
+  if (Uselect <= fx_y/(c*fy_y)) {
+    y[j,] <- DEy
+    j <- j+1
+  }else{
+    j <- j
+  }
+}
+
+set.seed(190216)
+randoms <- runif(2000, 0, 1)
+randIndex <- randoms < 0.5
+DEval11 <- data.frame(V1=log(2*randoms[randIndex]))
+DEVal21 <- data.frame(V1= -log(2-2*randoms[!randIndex]))
+DEval01 <- data.frame(rbind(DEval1, DEVal2))
+hist(DEval01$V1, freq=FALSE, breaks=300)
+set.seed(311015)
+NormTest <- data.frame(V1=rnorm(2000, 0, 1))
+
+ggplot(DEval01, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2,binwidth=0.3) + 
+  scale_y_continuous(labels = percent_format()) +
+  geom_freqpoly(size=1, col="darkblue",binwidth=0.3) +
+  geom_histogram(data = NormTest, fill = "red", alpha = 0.2,binwidth=0.3)+
+  geom_freqpoly(data = NormTest,size=1, col="darkred",binwidth=0.3) +
+  geom_histogram(data = y, fill = "green", alpha = 0.2,binwidth=0.3) +
+  geom_freqpoly(data = y,size=1, col="darkgreen",binwidth=0.3)
+
+ggplot(y, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2,binwidth=0.5) + 
+  scale_y_continuous(labels = percent_format()) +
+  geom_freqpoly(size=1, col="darkblue",binwidth=0.5) +
+  geom_histogram(data = NormTest, fill = "red", alpha = 0.2,binwidth=0.5)+
+  geom_freqpoly(data = NormTest,size=1, col="darkred",binwidth=0.5) 
+
 

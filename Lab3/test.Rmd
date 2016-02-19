@@ -106,6 +106,68 @@ It is centered around zero, which makes sense since the value of $\mu$ specifies
 Should it not be even more narrow around zero? A higher peak around zero.
 
 ## 2.2
+The following steps are performed in order to use the acceptance/rejection method with DE(0,1) as majorizing density to generate N(0,1) variables.  
+¤ First, the value of c is calculated.   
+This is done by using the Laplace distributed values from *2.1*. The value of c must be higher than all ratios of $f_y(x)$ and $f_x(x)$ where $f_y$ is the pdf for the double exponential distribution and $f_x$ is the pdf for the normal distribution. 
+  $$ c > \frac{f_x(x)}{f_y(x)} $$
+Then, the value of c is determined to be 1.315489.    
+¤ The first step of the acceptance/rejection is to generate Y.   
+This is done with the inverse CDF method explained in *2.1*  
+  ¤ Then the generated Y values is inserted into $f_y(Y)$ and $f_x(Y)$.  
+  This is done by using the probability density function for $f_y$, the double exponential distribution, and $f_x$, the normal distribution.  
+  ¤ Generate a U[0,1] value.  
+  ¤ Test if Y should be accepted or rejected.  
+  If the Y should be kept or not is decided with the following rule. If
+  $$ U \leq \frac{f_x(Y)}{f_y(Y)} $$
+  keep Y, else return to step one and generate a new Y value.  
+  
+The implemented acception/rejection algorithm is tested and 2000 N(0,1) values are generated. In the histogram below are these values illustrated with the blue line and the red line is 2000 N(0,1) values generated with *rnorm* function.  
+The acceptance rate is $\frac{1}{c}$, hence the rejection rate is $1 - \frac{1}{c}$. The expected rejection rate then is
+$$ 1 - \frac{1}{1.315489} = 0.24$$
+The 2000 N(0,1) values generated with the acceptance/rejection method required 2604 Y values to be generated. So 604 values were rejected, resulting in an rejection rate of 0.23. In other words are the obtained rejection rate very close to the expected rejection rate. Hence, the chosen value for c seem to be reasonable.  
+In the histogram below to the left are the values generated from the acception/rejection method plotted. In the histogram to the right are these values, the blue line, compared to 2000 N(0,1) values, the red line, generated with the *rnorm* function.  
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+c <- 1.315489
+i <- 0
+j <- 1
+y <- data.frame(V1=0)
+set.seed(311015)
+while (length(y[,1])<2000) {
+  i <- i+1
+  #set.seed(i)
+  Utest <- runif(1,0,1)
+  if(Utest < 0.5){
+    DEy <- log(2*Utest)
+  }else{
+    DEy <- -log(2-2*Utest)
+  }
+  fy_y <- 1/2 * exp(-1 * abs(DEy-0))
+  fx_y <- dnorm(DEy, 0, 1)
+  #set.seed(i+10)
+  Uselect <- runif(1,0,1)
+  if (Uselect <= fx_y/(c*fy_y)) {
+    y[j,] <- DEy
+    j <- j+1
+  }else{
+    j <- j
+  }
+}
+set.seed(311015)
+NormTest <- data.frame(V1=rnorm(2000, 0, 1))
+ARnm <- ggplot(y, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2,binwidth=0.5) + 
+  scale_y_continuous(labels = percent_format()) +
+  geom_freqpoly(size=1.5, col="darkblue",binwidth=0.5)
+RNnm <- ggplot(y, aes(V1,..density..)) + geom_histogram(fill="blue", alpha=0.2,binwidth=0.5) + 
+  scale_y_continuous(labels = percent_format()) +
+  geom_freqpoly(size=1, col="darkblue",binwidth=0.5) +
+  geom_histogram(data = NormTest, fill = "red", alpha = 0.2,binwidth=0.5)+
+  geom_freqpoly(data = NormTest,size=1, col="darkred",binwidth=0.5)
+grid.arrange(ARnm,RNnm, ncol=2)
+
+```
+
+
+As can be seen in the histogram to the right are the obtained histograms very similar to each other. Both the acceptance/rejection algorithm and the *rnorm* function produces values that seem to be N(0,1) distributed. 
 
 
 
