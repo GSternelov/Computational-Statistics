@@ -1,0 +1,174 @@
+---
+title: "Lab 4 - Computational Statistics"
+author: "Gustav Sternelöv"
+date: "February, 24, 2016"
+output: pdf_document
+---
+
+# Assignment 1
+
+## 1.1 
+The Metropolis-Hastings algorithm is used for generating values from the following distribution:
+$$ f(x) \propto x^5 e^{-x} $$
+In the first step is the log-normal distribution the chosen proposal distribution and the chosen starting point is $X_0 = 2$.
+A time-series plot of the chain is generated to analyse the convergence of the chain and if there is a burn-in period.  
+```{r,echo=FALSE, fig.height=3.5}
+library(coda)
+library(ggplot2)
+library(gridExtra)
+f_x <- function(x){
+  thaVal <- x^5*exp(-x)
+  return(thaVal)
+}
+x_ta <- 2
+set.seed(311015)
+for(i in  1:999){
+  Y_point <- rlnorm(1, x_ta[i], 1)
+  U_point <- runif(1, 0, 1)
+  q_x <- dlnorm(x = x_ta[i], meanlog = Y_point, 1)
+  q_y <- dlnorm(x = Y_point, meanlog = x_ta[i], 1)
+  alpha <- min(c(1, ((f_x(Y_point) * q_x )  / 
+                       (f_x(x_ta[i]) * q_y))))
+  if (U_point <= alpha) {
+    x_ta[i+1] <- Y_point
+  }else{
+    x_ta[i+1] <- x_ta[i]
+  }
+}
+x_ta <- data.frame(y=x_ta, x=1:1000)
+time_ln <- ggplot(x_ta, aes(y=y, x=x)) + geom_line(size=1.15)
+time_ln
+```
+The chain never converges, the patterin is irregular over the whole time-series, and therefore there is no burn-in period to analyse. 
+
+## 1.2  
+In the second step is it the same distribution as in *1.1* that the algorithm is supposed to generate values from. The difference is the proposal distribution which now is a chi-square distribution, $\chi^2(floor(X_t+1))$, where *floor(x)* means that the integer part of x is the inserted value. The starting point is $X_0 = 2$.  
+The chain is again plotted as a time-series in order to analyse the convergence and the eventual burn-in period.  
+```{r,echo=FALSE, fig.height=3.5}
+set.seed(311015)
+x_tb <- 2
+for(i in  1:999){
+  Y_point <- rchisq(1, floor(x_tb[i] +1))
+  U_point <- runif(1, 0, 1)
+  q_x <- dchisq(x_tb[i], floor(Y_point+1))
+  q_y <- dchisq(Y_point, floor(x_tb[i]+1))
+  alpha <- min(c(1, ((f_x(Y_point) * q_x )  / 
+                       (f_x(x_tb[i]) * q_y))))
+  if (U_point <= alpha) {
+    x_tb[i+1] <- Y_point
+  }else{
+    x_tb[i+1] <- x_tb[i]
+  }
+}
+x_tb <- data.frame(y=x_tb, x=1:1000)
+time_chi <- ggplot(x_tb, aes(y=y, x=x)) + geom_line(size=1)
+time_chi
+```
+With the mentioned chi-square distribution as proposal distribution does the chain converge very quickly.  
+Meaning that the chain has converged to the target pdf/density.  
+
+The burn-in period is not very evident by an visual eximination. Theoretically, according to Martinez(*Computational Statistics Handbook with Matlab*, 2001), the burn-in period can be assumed to be around 1-2 % of *n* if *n* is large enough.  
+In the example above *n* is 1000 and the burn-in period would then be around 10-20 of the first values in the chain. This is thought to be reasonable as it can be seen in the plot that the chain converges very fast.       
+
+
+## 1.3
+A comparison between the results obtained in step and step 2 shows that the chi-square distribution seem to be a better choice than the log-normal distribution for the proposal distribution.  
+The chain received for the log-normal as proposal distribution never converged. The pattern of the chain may suggest that a lower variance could be an option. 
+However, the conclusion of the comparison between the results is straightforward. The chi-square distribution used converged and clearly seem to be the better choice. 
+
+Why?
+
+Should be connected to how well the form of the respective proposal distributions fits the target distribution. 
+It is enough for the proposal densities to be of "regular form".
+That means that the demand of the proposal distribution is that it has the same support with nonzero density as the target pdf. 
+An example of how the respective density functions looks:  
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+lnormT <- data.frame(x=dlnorm(1:20, meanlog = 2, sdlog = 1))
+chisqT <- data.frame(x=dchisq(1:20, 3))
+PD1 <- ggplot(lnormT, aes(x=1:20, y=x)) + geom_area(fill="darkblue", alpha=0.6)
+PD2 <- ggplot(chisqT, aes(x=1:20, y=x)) + geom_area(fill="darkblue", alpha=0.6)
+grid.arrange(PD1, PD2, ncol=2)
+```
+More things that can have an impact on the properness for an proposal distribution:  
+The variance can have an impact. The pattern showed for the chain given with $LN~(X_t, 1)$ as proposal distribution may show signs that are typical for the case when the variance is too high. That since the chain never converges. Perhaps a lower variance could have given better results. 
+
+
+
+## 1.4
+10 MCMC sequences are generated with the generator from step 2. The respective starting points are 1,2,...,10. The Gelman-Rubin method is used for analysing the convergence of the sequences.  
+The output is given below and the most interesting number to interpret is the *Upper C.I.*. If this number is very close to 1, approximately around 1-1.2, convergence is concluded to have been reached. As the output shows is the *Upper C.I.* for these sequences equal to 1, hence convergence is achieved.  
+```{r, echo=FALSE}
+## 1.4 ##
+x_xt <- as.data.frame(matrix(seq(10001),nrow=10001,ncol=10))
+for(j in 1:10){
+  x_t <- j
+  t <- 0
+  for(i in  1:10000){
+    Y_point <- rchisq(1, floor(x_t[i] +1))
+    U_point <- runif(1, 0, 1)
+    q_x <- rchisq(1, floor(x_t[i]+1))
+    q_y <- rchisq(1, floor(Y_point+1))
+    alpha <- min(c(1, ((f_x(Y_point) * q_x )  / 
+                         (f_x(x_t[i]) * q_y))))
+    if (U_point <= alpha) {
+      x_t[i+1] <- Y_point
+    }else{
+      x_t[i+1] <- x_t[i]
+    }
+  }
+  x_xt[, j] <- x_t
+}
+
+f=mcmc.list()
+for (i in 1:10) f[[i]]=as.mcmc(x_xt[,i])
+gelman.diag(f)
+```
+
+## 1.5
+Using the sample from step 1 the estimation of the integral is given by:
+$$ \frac{1}{n}\sum_{t=1}^n(X_t)$$
+So the estimate of the mean given by the sample from step 1 is $`r round(mean(x_ta[,1]),3)`$.  
+For the sample from step 2 is the first 20 observations in the sample removed due to the burn-in period. So, the estimation of the integral is calculated in the following way:
+$$ \frac{1}{n-20}\sum_{t=20+1}^n(X_t) $$
+With this sample is the integral estimated to be $`r round(mean(x_tb[21:1000,1]),3)`$.
+
+## 1.6
+The probability density function for a gamma distribution is:
+$$ \frac{1}{\Gamma(\kappa)\theta^\kappa} x^{\kappa-1}e^{-\frac{x}{\theta}} $$
+An comparsion of the target distribution and the gamma distribution gives that $\kappa$ is equal to 6 and that $\theta$ is equal to 1.  
+The expected mean for a gamma distribution is given by the follwoing equation:
+$$E[X] = \kappa \theta $$
+Hence, the actual value of the integral is 6. The mean for step 1 is far away from this value and the mean for step 2 is very close to the actual value. This result is expected since the chain did not converge in step 1 but did so in step 2.  
+
+The next plot is used for comparing the theoretical density for *Gamma(6,1)*, the orange area, and the histogram for the values generated in step 2, the purple area.  The conclusion is that the generated values follows the target distribution relatively well.  
+```{r, echo=FALSE, fig.height=4, fig.width=8}
+Gamm <- data.frame(y=dgamma(0:18, 6, 1))
+ggplot(x_tb[21:1000,], aes(y,..density..)) + geom_histogram(binwidth=0.95, fill="purple", alpha=0.5) +
+  geom_area(data=Gamm,aes(x=0:18, y=y), fill="orange", alpha=0.5)
+```
+
+# Assignment 2
+
+## 2.1
+The dependence of the variable *y* on the variable *x* is illustrated with the plot below. The fits of two different models are also visualised. The blue line illustrates an quadratic model and the red line an ... model.  
+```{r, echo=FALSE, fig.height=3.5}
+chemic <- data.frame(load("C:/Users/Gustav/Documents/Computational-Statistics/Lab4/chemical.RData"))
+chemic <- data.frame(x=X, y=Y)
+ggplot(chemic, aes(x=X, y=Y)) + geom_point() + geom_smooth(method="lm",formula = y ~ x + I(x^2), size=1.1) + geom_smooth(method="lm",formula = y ~ log(x), col="red", size=1.1)
+```
+Both the quadratic model and the ... model seem to be relatively good fits to data. Perhaps is the quadratic model a little bit better, but that is hard to say definitely just from the plot. 
+
+## 2.2
+The formula for the likelihood p(**Y**|**$\mu$**) is:
+$$ {\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)}^n exp\left(-\frac{\sum_{i=1}^n (Y_i-\mu_i)^2}{2\sigma^2}\right) $$
+The formula for the prior $p(\mu)$ is:
+$${\left(\frac{1}{\sqrt{2\pi\sigma^2}}\right)}^{n-1} exp\left(-\frac{\sum_{i=1}^n (\mu_i-\mu_{i-1})^2}{2\sigma^2}\right) $$
+
+## 2.3
+The distribution for the first observation:
+
+The distribution in the span 2-49:
+$$ \propto exp \left(- \frac {(\mu_i - \frac{\mu_{i-1} +Y_i+\mu_{i+1}}{3})^2} {\frac{2}{3}\sigma^2}  \right) $$
+
+The distribution for the last observation:
+$$ \propto exp \left(- \frac {(\mu_{50} - \frac{Y_{50}+\mu_{49}}{2})^2} {\sigma^2}  \right) $$
