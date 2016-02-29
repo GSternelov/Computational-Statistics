@@ -65,7 +65,7 @@ time_chi <- ggplot(x_tb, aes(y=y, x=x)) + geom_line(size=1) +geom_vline(xinterce
 time_chi
 ```
 With the mentioned chi-square distribution as proposal distribution does the chain converge very quickly.  
-Meaning that the chain has converged to the target pdf/density.  
+Meaning that the chain has converged to the target density.  
 
 The burn-in period is not very evident by an visual eximination. Theoretically, according to Martinez(*Computational Statistics Handbook with Matlab*, 2001), the burn-in period can be assumed to be around 1-2 % of *n* if *n* is large enough.  
 In the example above is *n* set to 10000 and the burn-in period would then be around 100-200 of the first values in the chain. This is thought to be reasonable as it can be seen in the plot that the chain converges very fast. The orange line specifies the burn-in period that is chosen to be 200.        
