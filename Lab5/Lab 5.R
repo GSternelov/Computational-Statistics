@@ -61,10 +61,10 @@ permFunc(lottery, 2000)
 ## 1.5
 lottery$Draft_No <- 0
 for(i in 1:366){
-  lottery$Draft_No[i] <- max(0, min((5*lottery$Day_of_year[i] + rnorm(1, 183, 10)), 366))
+  lottery$Draft_No[i] <- max(0, min((0.1*lottery$Day_of_year[i] + rnorm(1, 183, 10)), 366))
 }
 plot(lottery$Draft_No, type="l")
-permFunc(lottery, 75)
+permFunc(lottery, 200)
 
 alphas <- seq(0.2, 10, 0.1)
 P_val <- 0
@@ -94,6 +94,7 @@ stat3<-function(data,n){
   res = mean(data1$Price)
   return(res)
 }
+set.seed(311015)
 res3=boot(prices,stat3,R=2000)
 hist(res3$t)
 plot(res3)
@@ -120,6 +121,19 @@ CI <- boot.ci(res3, type=c("norm","perc", "bca"))
 CIvals <- data.frame(rbind(CI$normal[2:3], CI$perc[4:5],CI$bca[4:5]), 
                      X3=c("norm", "perc", "bca"))
 names(CIvals) <- c("Lower", "Upper", "Method")
+
+quantile(res3$t, 0.025) 
+quantile(res3$t, 0.975) 
+
+floor(2000* (0.05/2))
+floor(2000-(2000*(0.05/2)))
+
+res3_t <- data.frame(t=res3$t)
+res3_t <- data.frame(res3_t[order(res3_t$t),] )
+res3_t[50,]
+res3_t[1950,]
+mean(res3_t[1000:1001,])
+
 ## 2.3
 T_star <- 0
 for(j in 1:110){

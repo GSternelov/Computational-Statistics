@@ -116,6 +116,7 @@ stat3<-function(data,n){
   res = mean(data1$Price)
   return(res)
 }
+set.seed(311015)
 res3=boot(prices,stat3,R=2000)
 priceBoot <- data.frame(mean = res3$t, index = 1:2000)
 ggplot(priceBoot, aes(mean,..density..)) + geom_histogram(binwidth=10, alpha=0.7)
@@ -172,7 +173,9 @@ ggplot(priceBoot, aes(mean)) + geom_histogram(binwidth=10, alpha=0.7) + geom_vli
   geom_text(aes(CIvals$Mean[1],0,label = "Mean", vjust = 1, hjust=1.2))+ ylim(-7, 225)
 ```
 
-It can be seen in the plot that both the first-order normal approximation confidence interval and the BCa interval is symmetric while the percentile interval not is symmetric. For the lower boundary are the percentile and the normal confidence interval at the almost excatly same point. If the percentile interval were symmetric it would have been at the exact same point as the normal interval also for the mean and the upper boundary. However, this is not the case. The upper limit is higher for the percentile interval than the normal and the mean is slightly lower for the percentile interval.
+It can be seen in the plot that both the first-order normal approximation confidence interval and the BCa interval is symmetric while the percentile interval not is symmetric. For the lower boundary are the percentile and the normal confidence interval at the almost excatly same point. If the percentile interval were symmetric it would have been at the exact same point as the normal interval also for the mean and the upper boundary. However, this is not the case. The upper limit is higher for the percentile interval than the normal and the mean is slightly lower for the percentile interval.  
+The shortest interval is obtained for the normal confidence interval, although the difference between the lengths of the intervals is very small. 
+The confidence interval with the mean closest to the mean for the whole data set is...
 
 \pagebreak
 
