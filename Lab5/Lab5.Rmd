@@ -1,7 +1,7 @@
 ---
 title: "Computational Statistics - Lab 5"
 author: "Gustav Sternelöv"
-date: "March, 3, 2016"
+date: "March, 10, 2016"
 output: pdf_document
 ---
 
@@ -50,8 +50,7 @@ res1Dat <- data.frame(x=res1$t, index=1:2000)
 ggplot(res1Dat, aes(x)) + geom_histogram(binwidth=0.01, alpha=.8)
 options(scipen=999)
 ```
-The P-value of the test concerining if the lottery is random or not is conducted in the following way where B is the number of bootstrap samples.
-$\frac{\sum{T \geq 0}} {B}$ is correct?  
+The P-value of the test concerining if the lottery is random or not is conducted in the following way where B is the number of bootstrap samples, $\frac{\sum{T \geq 0}} {B}$  
 Thus, the estimated p-value is $`r mean(res1$t > 0)`$ and the conclusion is that the lottery not is random. 
 
 ## 1.4
@@ -84,12 +83,33 @@ permFunc <- function(data, B){
 }
 set.seed(311015)
 ```
-The returned P-value is $`r permFunc(lottery, 2000)`$. Depending on the choice of significance level the conclusion about the randomness differ since the P-values is relatively low. However, if a the significance level is chosen to be 0.05, a common choice, the conclusion is that $H_0$ not can be rejected (the lottery is random).  
+The returned p-value is $`r permFunc(lottery, 2000)`$. Depending on the choice of significance level the conclusion about the randomness differ since the p-value is relatively low. However, if a the significance level is chosen to be 0.05, a common choice, the conclusion is that $H_0$ not can be rejected (the lottery is random).  
 
 ## 1.5
 ### a-b)
+```{r, echo=FALSE}
+lottery$Draft_No <- 0
+for(i in 1:366){
+  lottery$Draft_No[i] <- max(0, min((0.1*lottery$Day_of_year[i] + rnorm(1, 183, 10)), 366))
+}
+```
+With $\alpha$ equal to 0.1 and B=200 the received p-value for the test is $`r permFunc(lottery, 200)`$, so the null hypothesis is rejected. 
 
 ### c)
+The p-values for $\alpha$ values from 0.2 to 10, by steps of 0.1, are presented below. Since all p-values are very close to 0 the power is equal to 1. This means that the quality of the test statistics is very good. 
+```{r, echo=FALSE}
+alphas <- seq(0.2, 10, 0.1)
+P_val <- 0
+for(j in 1:length(alphas)){
+  lottery$Draft_No <- 0
+  for(i in 1:366){
+    lottery$Draft_No[i] <- max(0, min(alphas[j]*lottery$Day_of_year[i] + rnorm(1, 183, 10), 366))
+  }
+  P_val[j] <- permFunc(lottery, 200)
+}
+P_val
+```
+
 
 
 # Assignment 2
@@ -106,7 +126,7 @@ It is not totally evident but the distribution might be thought to remind of a c
 The mean price is $`r round(mean(prices$Price),2)`$. 
 
 ## 2.2
-Before bootstrap is used for estimating the distribution for the mean price of the houses it needs to be determined if it is parametric or non-parametric bootstrap that best suites the problem. Since I not am entirely convinced of which distribution the histogram in *2.1* reminds of, a non-parametric bootstrap is chosen for estimating the distribution.  
+Before bootstrap is used for estimating the distribution for the mean price of the houses it needs to be determined if it is a parametric or non-parametric bootstrap that best suites the problem. Since I not am entirely convinced of which distribution the histogram in *2.1* reminds of, a non-parametric bootstrap is chosen for estimating the distribution.  
 The distribution for the mean price obtained by a non-parametric bootstrap with B=2000 is plotted below.  
 ```{r, echo=FALSE, fig.width=8, fig.height=4}
 # 2.2
@@ -136,7 +156,7 @@ res4=boot(res3$t,varBoot,R=2000)
 ```
 The variance of the price of the mean is obtained by using a non-parametric bootstrap for the obtained estimates of mean and calculating the variance for each bootstrap sample. Again, B is set to 2000 and the estimated variance of the price of the mean is $`r round(mean(res4$t),2)`$.    
 
-The 95 % confidence interval for the mean price using bootstrap percentile, BCa and first-order normal approximation is presented by the table below. The *lower* and *upper* columns gives the boundiares of the intervals and the column *length* gives the length of the respective intervals. The only notable difference between the confidence intervals is that the BCa interval has just a little higher values than the two other. 
+The 95 % confidence interval for the mean price using bootstrap percentile, BCa and first-order normal approximation is presented by the table below. The *lower* and *upper* columns gives the boundiares of the intervals and the column *length* gives the length of the respective intervals. The notable differences between the confidence intervals is that the BCa interval has just a little higher values than the two other and that the percentile interval is the shortest.
 ```{r, echo=FALSE}
 # 95 % C.I for the mean
 CI <- boot.ci(res3, type=c("norm","perc", "bca"))
@@ -163,7 +183,6 @@ The variance of the mean price with the jackknife method is $`r round(varJack,2)
 The following plot visualises a comparison of the confidence intervals presented in *2.2*. The upper and lower boundary as well as the location of the mean for each interval is shown in the plot.  
 ```{r, echo=FALSE, fig.width=8, fig.height=4}
 CIvals$Mean <- (CIvals$Lower+CIvals$Upper)/2
-CIvals[2,5] <- quantile(priceBoot$mean, 0.5)
 
 ggplot(priceBoot, aes(mean)) + geom_histogram(binwidth=10, alpha=0.7) + geom_vline(data=CIvals, aes(xintercept=Lower, col=Method, linetype=Method),show_guide = TRUE, size=1.1) + geom_vline(data=CIvals, aes(xintercept=Upper, col=Method, linetype=Method),show_guide = TRUE, size=1.1) + geom_vline(data=CIvals, aes(xintercept=Mean, col=Method, linetype=Method),show_guide = TRUE, size=1.1) + scale_colour_manual(name="Confidence \n interval", values=c("springgreen3", "blue", "darkorange")) +
   scale_linetype_manual(name="", values=c("solid", "solid","dashed"), guide=FALSE) +
@@ -173,11 +192,11 @@ ggplot(priceBoot, aes(mean)) + geom_histogram(binwidth=10, alpha=0.7) + geom_vli
   geom_text(aes(CIvals$Mean[1],0,label = "Mean", vjust = 1, hjust=1.2))+ ylim(-7, 225)
 ```
 
-It can be seen in the plot that both the first-order normal approximation confidence interval and the BCa interval is symmetric while the percentile interval not is symmetric. For the lower boundary are the percentile and the normal confidence interval at the almost excatly same point. If the percentile interval were symmetric it would have been at the exact same point as the normal interval also for the mean and the upper boundary. However, this is not the case. The upper limit is higher for the percentile interval than the normal and the mean is slightly lower for the percentile interval.  
-The shortest interval is obtained for the normal confidence interval, although the difference between the lengths of the intervals is very small. 
-The confidence interval with the mean closest to the mean for the whole data set is...
+The shortest interval is obtained for the percentile confidence interval, although the difference between the lengths of the intervals is very small. The estimated means are very similar for the normal and the percentile interval and a bit higher for the BCa interval. 
+The confidence interval with the mean closest to the mean for the whole data set is the percentile interval with a mean of 1081.28. The mean for the normal confidence interval is very similar, 1081.35 and for the BCa is much higher, 1089.05. 
 
 \pagebreak
 
 # Appendix
-
+```{r code=readLines(knitr::purl('C:\\Users\\Gustav\\Documents\\Computational-Statistics\\Lab5\\Lab5.rmd', documentation = 0)), eval = FALSE}
+```
