@@ -1,6 +1,7 @@
 library(ggplot2)
 library(reshape2)
 library(grid)
+library(gridExtra)
 ## Assignment 1
 # 1.1
 f_x <- function(x){
@@ -23,7 +24,7 @@ Mutate <- function(x){
 # 1.4
 a_func <- function(maxiter, mutprob){
   fx <- f_x(0:30)
-  plot(y=fx, x=0:30, ylim=c(-3, 0.5), type="l")
+  p <- ggplot(data.frame(fx), aes(x=0:30, y=fx)) + geom_line(col="royalblue", size=1.1) + ylim(-2.5, 0.25)
   popuX <- seq(0, 30, 5)
   Values <- f_x(popuX)
   MaxVal <- 0
@@ -40,21 +41,18 @@ a_func <- function(maxiter, mutprob){
     Values[Order] <- f_x(popuX[Order])
     MaxVal[i] <- max(Values)
   }
-  points(y=Values,x=popuX,col="red", bg="darkorange",pch=21)
-  return(MaxVal)
+  p + geom_point(data=data.frame(y=Values,x=popuX), aes(x=x, y=y), size=3, col="darkorange")
 }
 # 1.5
-par(mfrow=c(3,2))
 set.seed(103115)
-a_func(10, 0.1)
-a_func(10, 0.5)
-a_func(10, 0.9)
+a1 <- a_func(10, 0.1) + ggtitle("maxiter=10, mutprob=0.1")
+a2 <- a_func(10, 0.5) + ggtitle("maxiter=10, mutprob=0.5")
+a3 <- a_func(10, 0.9) + ggtitle("maxiter=10, mutprob=0.9")
+b1 <- a_func(100, 0.1) + ggtitle("maxiter=100, mutprob=0.1")
+b2 <- a_func(100, 0.5) + ggtitle("maxiter=100, mutprob=0.5")
+b3 <- a_func(100, 0.9) + ggtitle("maxiter=100, mutprob=0.9")
+grid.arrange(a1,a2,a3, b1,b2,b3, ncol=2)
 
-set.seed(103115)
-a_func(100, 0.1)
-a_func(100, 0.5)
-a_func(100, 0.9)
-par(mfrow=c(1,1))
 
 
 ## Assignment 2
@@ -74,6 +72,21 @@ ggplot(Physi2) + geom_line(aes(x=X, y=value, colour=variable),size=1.05) +
 
 
 # 2.3
+
+emExp <- function(data, lambdaZ, stopC){
+  X <- data$X
+  Y <- data$Y
+  Z <- data$Z
+  Zobs <- Z[!is.na(Z)]
+  Zmiss <- Z[is.na(Z)]
+  n <- length(c(Zobs, Zmiss))
+  r <- length(Zobs)
+  # Initial values
+  
+  # log-like function
+  
+}
+
 
 em.norm <- function(Y){
   Yobs <- Y[!is.na(Y)]

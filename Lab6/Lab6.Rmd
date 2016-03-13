@@ -8,11 +8,12 @@ output: pdf_document
 # Assignment 1
 
 ## 1.1-1.4
-Writing functions. See appendix for r-code. 
+In 1.1 to 1.3 are the functions *f(x)*, *crossover* and *mutate* defined. All of these functions are used in 1.4 where a function that implements the *genetic algorithm* is written. The r-code used to define and write all the mentioned functions can be seen in the appendix. 
 ```{r, echo=FALSE}
 library(ggplot2)
 library(reshape2)
 library(grid)
+library(gridExtra)
 ## Assignment 1
 # 1.1
 f_x <- function(x){
@@ -32,7 +33,7 @@ Mutate <- function(x){
 # 1.4
 a_func <- function(maxiter, mutprob){
   fx <- f_x(0:30)
-  plot(y=fx, x=0:30, ylim=c(-3, 0.5), type="l")
+  p <- ggplot(data.frame(fx), aes(x=0:30, y=fx)) + geom_line(col="royalblue", size=1.1) + ylim(-2.5, 0.25)
   popuX <- seq(0, 30, 5)
   Values <- f_x(popuX)
   MaxVal <- 0
@@ -49,28 +50,28 @@ a_func <- function(maxiter, mutprob){
     Values[Order] <- f_x(popuX[Order])
     MaxVal[i] <- max(Values)
   }
-  points(y=Values,x=popuX,col="red", bg="darkorange",pch=21)
+  p + geom_point(data=data.frame(y=Values,x=popuX), aes(x=x, y=y), size=2.5, col="darkorange")
 }
 ```
 
 
 ## 1.5
-The plots for *maxiter*=10,100 and *mutprob*=0.1, 0.5, 0.9.
+The function written in 1.4 takes two different arguments, *maxiter* and *mutprob*. The first argument specifies the maximum number of iterations and the second argument defines the probability for a kid created by the crossover function getting mutated or not. The plots below visualises the obtained results when combinations of the following settings are tested:  
+$maxiter=10,100, mutprob=0.1, 0.5, 0.9$
 
 ```{r, echo=FALSE}
 # 1.5
-par(mfrow=c(3,2))
 set.seed(103115)
-a_func(10, 0.1)
-a_func(10, 0.5)
-a_func(10, 0.9)
-
-set.seed(103115)
-a_func(100, 0.1)
-a_func(100, 0.5)
-a_func(100, 0.9)
-par(mfrow=c(1,1))
+a1 <- a_func(10, 0.1) + ggtitle("maxiter=10, mutprob=0.1")
+a2 <- a_func(10, 0.5) + ggtitle("maxiter=10, mutprob=0.5")
+a3 <- a_func(10, 0.9) + ggtitle("maxiter=10, mutprob=0.9")
+b1 <- a_func(100, 0.1) + ggtitle("maxiter=100, mutprob=0.1")
+b2 <- a_func(100, 0.5) + ggtitle("maxiter=100, mutprob=0.5")
+b3 <- a_func(100, 0.9) + ggtitle("maxiter=100, mutprob=0.9")
+grid.arrange(a1,a2,a3, b1,b2,b3, ncol=2)
 ```
+A low number of iterations results in a final population that is rather similar to the initial population, regardless the setting for *mutprob*. The function did not succed to find the highest possible value for the objective function. 
+When the number of iterations is higher, the final population and the initial population are much more dissimilar. 
 
 
 # Assignment 2
